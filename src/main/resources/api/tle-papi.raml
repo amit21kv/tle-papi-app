@@ -1,0 +1,29 @@
+#%RAML 1.0
+title: TLE-PAPI
+version: v1
+baseUri: www.geospatialearth.in
+
+/getTleByCountry:
+  /{country}:
+    description: This GET method allows to display all TLE for a country
+    get:
+      responses:
+        200:
+          body:
+            text/plain:
+              example:
+                "Eros B
+                1 29049 xfdg fesef sdefef vsefw vsef
+                2 29049U sdfb drrg gfe fwe fgewr gfwe"
+/getTleByID:
+  /{noradid}:
+    description: This GET method allows to display TLE for a single NORAD ID
+    get:
+      responses:
+        200:
+          body:
+            text/plain:
+              
+                
+              
+    

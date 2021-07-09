@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	
+	<flow name="getTLEbyID" doc:id="aef825f4-ad68-4076-9df3-35a02f2cad84" >
+		<parallel-foreach doc:name="Parallel For Each" doc:id="4ae6ca00-e0ec-4586-9579-ab6bd2423fef" maxConcurrency="50" target="tle">
+			<until-successful maxRetries="3" doc:name="Until Successful" doc:id="9d051009-a720-49a7-84d7-83fdbea9b304" millisBetweenRetries="3000">
+			<http:request method="GET" doc:name="Request" doc:id="33f7144e-6555-4bca-9bf7-77c248e9dfbf" config-ref="HTTP_Request_configuration" path="/tle/{noradid}">
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	noradid : payload.noradid
+}]]]></http:uri-params>
+		</http:request>
+		</until-successful>
+		</parallel-foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="e32923d0-7408-48b3-a625-114374624417" message="#[%dw 2.0 output application/json --- vars.tle map (($$):$)]" />
+		<ee:transform doc:name="Transform Message" doc:id="0be7a0c2-af4b-4d87-a82e-6ca87dd5ce04">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/json
+---
+vars.tle map (($$):substringBeforeLast($.payload,"\r\n"))]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+	</flow>
+	<flow name="getTLEbyCountry" doc:id="388aaa8f-3a8d-4e38-8bcc-3c94b6d2d59d" >
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="3cd906c1-3df3-4b83-87c8-598e2fca73cf" millisBetweenRetries="3000">
+			<http:request method="GET" doc:name="Request" doc:id="b41a8b77-44e1-4900-9ac6-b3108247a03e" config-ref="HTTP_Request_configuration1" path="/satellites/country/{countryID}">
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	countryID : vars.country
+}]]]></http:uri-params>
+		</http:request>
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="b05bb964-05a5-47a9-ade9-0fdfb01c768e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(payload map (value, index) -> {
+	"noradid": value.noradid,
+	"satName": trim(value.satName)
+}) orderBy $.satName]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="7c88e004-e3fc-4495-8039-ef23d2de8748" name="getTLEbyID" />
+	</flow>
+</mule>

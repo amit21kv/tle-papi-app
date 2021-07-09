@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+<http:listener-config name="tle-papi-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="tle-papi-config" api="tle-papi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="35d26229-1cba-46b9-a1e0-369e62af6d5b" basePath="/api" >
+		<http:request-connection host="tle-celestrak-sapi-app.us-e2.cloudhub.io" />
+		<http:default-headers >
+		</http:default-headers>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="182e3728-a349-4e7b-bcbf-8285e0596d9e" basePath="/api" >
+		<http:request-connection host="tle-sapi-app.us-e2.cloudhub.io" />
+		<http:default-headers >
+			<http:default-header key="client_id" value="${client_id}" />
+			<http:default-header key="client_secret" value="${client_secret}" />
+		</http:default-headers>
+	</http:request-config>
+	<api-gateway:autodiscovery apiId="17046325" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="ffe6213a-8984-42e3-ba98-83ac56adfc9c" flowRef="tle-papi-main" />
+	
+	</mule>
